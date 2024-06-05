@@ -37,55 +37,18 @@ def parse_extra_bot(str):
     return [about, price, size, address, url]
 
 
-async def read_channel(client, last_message_id, channel_name, lock, count=40):
-    try:
-        async with lock:
-            print("getting messages")
-            entity = await client.get_entity(channel_name)
-            messages = await client.get_messages(entity, limit=count)
-            print("checking new")
-            new_messages = [
-                message for message in messages if message.id > last_message_id
-            ]
-            if new_messages:
-                last_message_id = new_messages[0].id
-                flats = []
-                for message in new_messages:
-                    if channel_name == "berlin_apartment_bot":
-                        print("old bot")
-                        str = message.raw_text
-                        parsed = parse_main_bot(str)
-                    else:
-                        str = message.raw_text
-                        parsed = parse_extra_bot(str)
-                        print("new bot")
-                    flat = {
-                        "message_id": message.id,
-                        "url": parsed[4],
-                        "about": parsed[0],
-                        "price": parsed[1],
-                        "size": parsed[2],
-                        "address": parsed[3],
-                        "channel_name": channel_name,
-                        "added_dttm": message.date.strftime("%d/%m/%Y, %H:%M:%S"),
-                    }
-                    flats.append(flat)
-                return flats
-    except Exception as e:
-        print(f"Error reading channel: {e}")
-
-
-async def subscribe_to_channel():
+async def subscribe_to_extra_channel():
     client = await telegram_client()
-    entity = await client.get_entity(CHANNEL_USERNAME)
-    print("subscribed")
-    if entity.id not in event_handlers:
+    entity = await client.get_entity(EXTRA_CHANNEL_USERNAME)
+
+    if 1 == 1:  # entity.id not in event_handlers:
         event_handlers[entity.id] = True
         print(event_handlers)
+        print("subscribed")
 
         @client.on(events.NewMessage(chats=[entity.id]))
         async def new_message_handler(event):
-            parsed = parse_main_bot(event.message.message)
+            parsed = parse_extra_bot(event.message.message)
             print(parsed)
             flat = {
                 "message_id": event.message.id,
@@ -101,14 +64,14 @@ async def subscribe_to_channel():
             sorted_set_key = "flats_sorted_set"
             print("Received new message:", flat)
             await insert_into_redis_sorted(r, sorted_set_key, flat, max_count=40)
-            r.publish("flats_channel", json.dumps(flat))
+            r.publish("flats_extra_channel", json.dumps(flat))
 
         await client.run_until_disconnected()
 
 
-async def unsubscribe_from_channel():
+async def unsubscribe_from_extra_channel():
     client = await telegram_client()
-    entity = await client.get_entity(CHANNEL_USERNAME)
+    entity = await client.get_entity(EXTRA_CHANNEL_USERNAME)
     if entity.id in event_handlers:
         client.disconnect()
         event_handlers = {}

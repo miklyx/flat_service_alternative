@@ -9,9 +9,10 @@ from telegram_service import read_channel
 
 load_dotenv()
 
-CHANNEL_USERNAME = os.environ.get('PY_CHANNEL_USERNAME')
+CHANNEL_USERNAME = os.environ.get("PY_CHANNEL_USERNAME")
 
-async def refresh_flats(max_count = 40, count = 40):
+
+async def refresh_flats(max_count=40, count=40):
     client = await telegram_client()
     r = await init_redis()
     set_key = "flats_set"
@@ -20,8 +21,7 @@ async def refresh_flats(max_count = 40, count = 40):
         lock = asyncio.Lock()
         flats = await read_channel(client, 0, CHANNEL_USERNAME, lock, count)
         for flat in flats:
-          await insert_into_redis_sorted(r, sorted_set_key, flat, max_count)
+            await insert_into_redis_sorted(r, sorted_set_key, flat, max_count)
     except Exception as e:
-        print(f'Error: {e}')
+        print(f"Error: {e}")
     return "Okay"
-
