@@ -7,6 +7,8 @@ from telegram_service_extra_bot import (
     subscribe_to_extra_channel,
     unsubscribe_from_extra_channel,
 )
+from fastapi_utils.tasks import repeat_every
+
 
 from typing import Annotated
 
@@ -63,18 +65,32 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+@repeat_every(seconds=60 * 15)
+async def refresh_flats_15min():
+    await refresh_flats()
+
+@app.on_event("startup")
+async def startup_event():
+    await refresh_flats_15min()
+
+
 @app.get("/")
 async def root():
     return "Refresh service"
+
+
+@app.head("/health")
+async def health_check():
+    return "OK"
 
 
 @app.get("/flats", response_model=list[Flat])
 async def get_flats_route(
     count: Annotated[
         int,
-        Query(title="Number of flats", description="Number of falts in response", gt=0),
-    ] = -1
-):
+        Query(title="Number of flats", description="Number of flats in response", gt=0),
+    ] = 0
+):  
     data = await get_flats(count)
     return data
 

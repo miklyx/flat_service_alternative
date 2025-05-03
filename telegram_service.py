@@ -52,7 +52,7 @@ async def read_channel(client, last_message_id, channel_name, lock, count=40):
                 flats = []
                 for message in new_messages:
                     if channel_name == "berlin_apartment_bot":
-                        print("old bot")
+                        #print("old bot")
                         str = message.raw_text
                         parsed = parse_main_bot(str)
                     else:

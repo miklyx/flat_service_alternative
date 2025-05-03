@@ -25,7 +25,7 @@ async def insert_into_redis_sorted(redis, sorted_set_key, flat, max_count=40):
 
 
 async def init_redis():
-    redis_connection = redis.Redis(host=REDIS_HOST, port=15432, password=REDIS_PWD)
+    redis_connection = redis.Redis(host=REDIS_HOST, port=19093, password=REDIS_PWD)
     return redis_connection
 
 
