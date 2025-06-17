@@ -81,6 +81,7 @@ async def root():
 
 @app.head("/health")
 async def health_check():
+    await refresh_flats()
     return "OK"
 
 
